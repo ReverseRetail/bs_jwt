@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 RSpec.describe BS::JWT do
-  it "has a version number" do
+  it 'has a version number' do
     expect(BS::JWT::VERSION).not_to be nil
   end
 
-  it "does something useful" do
-    expect(false).to eq(true)
-  end
+
 end
