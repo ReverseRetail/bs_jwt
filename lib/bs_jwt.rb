@@ -2,6 +2,7 @@
 
 require 'bs_jwt/version'
 require 'bs_jwt/railtie' if defined?(Rails)
+require 'json/jwt'
 
 ##
 # Module BS::JWT
@@ -16,20 +17,19 @@ require 'bs_jwt/railtie' if defined?(Rails)
 module BsJwt
   class BaseError < RuntimeError; end
 
-  class KeyMissing < BaseError; end
   class ConfigMissing < BaseError; end
   class VerificationError < BaseError; end
   class NetworkError < BaseError; end
 
-  mattr_reader :auth0_domain
-  mattr_writer :jwks_endpoint, :jwks_key
+  mattr_accessor :auth0_domain
+  mattr_writer :jwks_key, :jwks_endpoint
 
-  DEFAULT_ENDPOINT = '/.well_known/jwks.json'
+  DEFAULT_ENDPOINT = '/.well-known/jwks.json'
 
   class << self
     def process_jwt(jwt)
       return false unless (decoded = verify_and_decode(jwt))
-      process_payload(decoded)
+      process_payload(decoded, jwt)
     end
 
     def process_auth0_hash(auth0_hash)
@@ -50,19 +50,24 @@ module BsJwt
     # Fetches and overwrites the JWKS 
     def update_jwks
       check_config
-      @jwks_key = fetch_jwks
+      self.jwks_key = fetch_jwks
     end
 
     def jwks_key
-      @jwks_key || update_jwks || raise(KeyMissing, 'Fetching JWKS key failed')
-    end
-
-    def auth0_domain=(new_val)
-      new_val = 'https://' + new_val unless new_val =~ %r{^https?\:\/\/}
-      @auth0_domain = new_val
+      @@jwks_key || update_jwks
     end
 
     private
+
+    def process_payload(payload, jwt)
+      buddy_id = payload.find { |k, _v| k =~ %r{buddy_id$} }&.last
+      {
+        buddy_id: buddy_id,
+        display_name: payload['name'],
+        expires_at: payload['exp'],
+        token: jwt
+      }
+    end
 
     def check_config
       %i[auth0_domain].each do |key|
@@ -73,15 +78,16 @@ module BsJwt
     end
 
     def jwks_endpoint
-      @jwks_endpoint || DEFAULT_ENDPOINT
+      @@jwks_endpoint || DEFAULT_ENDPOINT
     end
 
     def fetch_jwks(domain: auth0_domain, endpoint: jwks_endpoint)
       url = [domain, endpoint].join
+      url = 'https://' + url unless url =~ %r{https?:\/\/}
       res = Faraday.get(url)
       # raise if response code is not HTTP success
       # Faraday's exception should fall through
-      raise NetworkError unless res.success?
+      raise(NetworkError, 'Fetching JWKS key failed') unless res.success?
       JSON::JWK::Set.new(JSON.parse(res.body))
     end
   end
