@@ -1,11 +1,11 @@
 
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "bs/jwt/version"
+require "bs_jwt/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "bs-jwt"
-  spec.version       = BS::JWT::VERSION
+  spec.name          = "bs_jwt"
+  spec.version       = BsJwt::VERSION
   spec.authors       = ["Karol M"]
   spec.email         = ["dmuhafc@gmail.com"]
 
@@ -31,6 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_dependency "faraday", "~> 0.15.1"
+  spec.add_dependency "faraday", ">= 0.8"
   spec.add_dependency "json-jwt", "~> 1.9.4"
 end

@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    bs-jwt (0.1.0)
-      faraday (~> 0.15.1)
+    bs_jwt (0.1.0)
+      faraday (>= 0.8)
       json-jwt (~> 1.9.4)
 
 GEM
@@ -49,7 +49,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bs-jwt!
+  bs_jwt!
   bundler (~> 1.16)
   rake (~> 10.0)
   rspec (~> 3.0)
