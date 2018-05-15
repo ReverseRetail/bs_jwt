@@ -1,5 +1,6 @@
 require "bundler/setup"
-require "bs/jwt"
+require "bs_jwt"
+require 'faraday'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

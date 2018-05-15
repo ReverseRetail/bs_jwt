@@ -5,7 +5,7 @@ require 'bs_jwt/railtie' if defined?(Rails)
 require 'json/jwt'
 
 ##
-# Module BS::JWT
+# Module BsJwt
 # Used to decode, verify, and process JSON Web Tokens (JWTs) issued by Auth0
 # in applications developed and used at the company Reverse-Retail GmbH
 # (www.buddyandselly.com), Hamburg, Germany.
@@ -40,13 +40,6 @@ module BsJwt
       process_payload(decoded, jwt)
     end
 
-    def verify_and_decode(jwt)
-      return false unless jwt.is_a?(String)
-      JSON::JWT.decode(jwt, jwks_key)
-    rescue JSON::JWT::Exception
-      false
-    end
-
     def jwks_key
       @@jwks_key || update_jwks
     end
@@ -60,13 +53,34 @@ module BsJwt
     end
 
     def process_payload(payload, jwt)
-      buddy_id = payload.find { |k, _v| k =~ /buddy_id$/ }&.last
+      namespaced = namespaced_attributes(payload, :buddy_id, :roles)
       {
-        buddy_id: buddy_id,
-        display_name: payload['name'],
+        display_name: payload['nickname'],
         expires_at: payload['exp'],
         token: jwt
-      }
+      }.merge(namespaced)
+    end
+
+    # For given `payload`, finds the desired `attr_names`.
+    # Returns Hash of the format {:attr_name => attr_value}.
+    # This is necesarry as Auth0 (and the OAuth2 standards) require custom claims
+    # to be namespaced with a domain.
+    #
+    # Usage:
+    # > namespaced(payload, :buddy_id, :roles)
+    # => {buddy_id: 2137, roles: ["pope", "monter"]} 
+    def namespaced_attributes(payload, *attr_names)
+      attr_names.map do |attr|
+        val = payload.find { |k, _v| k.end_with?(attr.to_s) }&.last
+        [attr.to_sym, val]
+      end.to_h
+    end
+
+    def verify_and_decode(jwt)
+      return false unless jwt.is_a?(String)
+      JSON::JWT.decode(jwt, jwks_key)
+    rescue JSON::JWT::Exception
+      false
     end
 
     def check_config
@@ -83,7 +97,7 @@ module BsJwt
 
     def fetch_jwks(domain: auth0_domain, endpoint: jwks_endpoint)
       url = [domain, endpoint].join
-      url = 'https://' + url unless url =~ %r{https?:\/\/}
+      url = 'https://' + url unless url =~ %r{https?://}
       res = Faraday.get(url)
       # raise if response code is not HTTP success
       # Faraday's exception should fall through
