@@ -27,11 +27,6 @@ module BsJwt
   DEFAULT_ENDPOINT = '/.well-known/jwks.json'
 
   class << self
-    def process_jwt(jwt)
-      return false unless (decoded = verify_and_decode(jwt))
-      process_payload(decoded, jwt)
-    end
-
     def process_auth0_hash(auth0_hash)
       unless auth0_hash.is_a?(Hash)
         raise ArgumentError, 'Auth0 Hash must be an instance of Hash'
@@ -40,17 +35,16 @@ module BsJwt
       process_jwt(jwt)
     end
 
+    def process_jwt(jwt)
+      return false unless (decoded = verify_and_decode(jwt))
+      process_payload(decoded, jwt)
+    end
+
     def verify_and_decode(jwt)
       return false unless jwt.is_a?(String)
       JSON::JWT.decode(jwt, jwks_key)
-    rescue JWT::VerificationError, JWT::DecodeError
+    rescue JSON::JWT::Exception
       false
-    end
-
-    # Fetches and overwrites the JWKS 
-    def update_jwks
-      check_config
-      self.jwks_key = fetch_jwks
     end
 
     def jwks_key
@@ -59,8 +53,14 @@ module BsJwt
 
     private
 
+    # Fetches and overwrites the JWKS 
+    def update_jwks
+      check_config
+      self.jwks_key = fetch_jwks
+    end
+
     def process_payload(payload, jwt)
-      buddy_id = payload.find { |k, _v| k =~ %r{buddy_id$} }&.last
+      buddy_id = payload.find { |k, _v| k =~ /buddy_id$/ }&.last
       {
         buddy_id: buddy_id,
         display_name: payload['name'],
