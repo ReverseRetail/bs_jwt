@@ -3,7 +3,7 @@ module BsJwt
 
     attr_accessor :roles, :display_name, :token, :expires_at, :buddy_id, :email
 
-    def initialize(roles:, display_name:, token:, expires_at:, buddy_id:, email:)
+    def initialize(roles: [], display_name: nil, token: nil, expires_at: nil, buddy_id: nil, email: nil)
       @roles = roles
       @display_name = display_name
       @token = token
