@@ -62,7 +62,7 @@ module BsJwt
         display_name: payload['nickname'],
         token: jwt_token,
         expires_at: Time.at(payload['exp']),
-        buddy_id: payload['buddy_id'],
+        buddy_id: payload['https://buddy.buddyandselly.com/buddy_id'],
         email: payload['name']
       )
     end
