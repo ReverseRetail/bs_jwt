@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'bs_jwt/version'
+require 'bs_jwt/authentication'
 require 'bs_jwt/railtie' if defined?(Rails)
 require 'json/jwt'
 
@@ -20,6 +21,7 @@ module BsJwt
   class ConfigMissing < BaseError; end
   class VerificationError < BaseError; end
   class NetworkError < BaseError; end
+  class InvalidToken < BaseError; end
 
   mattr_accessor :auth0_domain
   mattr_writer :jwks_key, :jwks_endpoint
@@ -32,12 +34,14 @@ module BsJwt
         raise ArgumentError, 'Auth0 Hash must be an instance of Hash'
       end
       jwt = auth0_hash.dig('credentials', 'id_token')
-      process_jwt(jwt)
+      verify_and_decode!(jwt)
     end
 
-    def process_jwt(jwt)
-      return false unless (decoded = verify_and_decode(jwt))
-      process_payload(decoded, jwt)
+    def verify_and_decode!(jwt_token)
+      decoded = JSON::JWT.decode(jwt_token, jwks_key)
+      build_authentication(decoded, jwt_token)
+    rescue JSON::JWT::Exception
+      raise InvalidToken
     end
 
     def jwks_key
@@ -46,41 +50,21 @@ module BsJwt
 
     private
 
-    # Fetches and overwrites the JWKS 
+    # Fetches and overwrites the JWKS
     def update_jwks
       check_config
       self.jwks_key = fetch_jwks
     end
 
-    def process_payload(payload, jwt)
-      namespaced = namespaced_attributes(payload, :buddy_id, :roles)
-      {
+    def build_authentication(payload, jwt_token)
+      Authentication.new(
+        roles: payload['https://buddy.buddyandselly.com/roles'],
         display_name: payload['nickname'],
-        expires_at: payload['exp'],
-        token: jwt
-      }.merge(namespaced)
-    end
-
-    # For given `payload`, finds the desired `attr_names`.
-    # Returns Hash of the format {:attr_name => attr_value}.
-    # This is necesarry as Auth0 (and the OAuth2 standards) require custom claims
-    # to be namespaced with a domain.
-    #
-    # Usage:
-    # > namespaced(payload, :buddy_id, :roles)
-    # => {buddy_id: 2137, roles: ["pope", "monter"]} 
-    def namespaced_attributes(payload, *attr_names)
-      attr_names.map do |attr|
-        val = payload.find { |k, _v| k.end_with?(attr.to_s) }&.last
-        [attr.to_sym, val]
-      end.to_h
-    end
-
-    def verify_and_decode(jwt)
-      return false unless jwt.is_a?(String)
-      JSON::JWT.decode(jwt, jwks_key)
-    rescue JSON::JWT::Exception
-      false
+        token: jwt_token,
+        expires_at: Time.at(payload['exp']),
+        buddy_id: payload['buddy_id'],
+        email: payload['name']
+      )
     end
 
     def check_config
