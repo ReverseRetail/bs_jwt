@@ -1,5 +1,6 @@
-module BsJwt
+# frozen_string_literal: true
 
+module BsJwt
   RSpec.describe Authentication do
     describe '#has_role?' do
       it 'returns true if the given role is included in roles' do
@@ -29,5 +30,4 @@ module BsJwt
       end
     end
   end
-
 end

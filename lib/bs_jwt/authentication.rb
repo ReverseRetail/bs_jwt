@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module BsJwt
   class Authentication
-
     attr_accessor :roles, :display_name, :token, :expires_at, :buddy_id, :email, :user_id
 
-    def initialize(roles: nil, display_name: nil, token: nil, expires_at: nil, buddy_id: nil, email: nil, user_id: nil)
+    def initialize( # rubocop:disable Metrics/ParameterLists
+      roles: nil, display_name: nil, token: nil, expires_at: nil, buddy_id: nil, email: nil, user_id: nil
+    )
       @roles = roles || []
       @display_name = display_name
       @token = token
@@ -13,7 +16,7 @@ module BsJwt
       @user_id = user_id
     end
 
-    def has_role?(role)
+    def has_role?(role) # rubocop:disable Naming/PredicateName
       roles.include?(role)
     end
 

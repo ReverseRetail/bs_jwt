@@ -14,7 +14,6 @@ require 'json/jwt'
 #
 # The purpose of this library is to avoid code duplication among different
 # Rails apps, such as Buddy, B&S Inventory, or B&S Packing.
-
 module BsJwt
   class BaseError < RuntimeError; end
 
@@ -29,9 +28,7 @@ module BsJwt
 
   class << self
     def verify_and_decode_auth0_hash!(auth0_hash)
-      unless auth0_hash.is_a?(Hash)
-        raise ArgumentError, 'Auth0 Hash must be an instance of Hash'
-      end
+      raise ArgumentError, 'Auth0 Hash must be an instance of Hash' unless auth0_hash.is_a?(Hash)
       jwt = auth0_hash.dig('credentials', 'id_token')
       verify_and_decode!(jwt)
     end
@@ -45,7 +42,7 @@ module BsJwt
     end
 
     def jwks_key
-      @@jwks_key ||= update_jwks
+      @jwks_key ||= update_jwks
     end
 
     private
