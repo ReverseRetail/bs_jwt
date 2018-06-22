@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bs_jwt (0.1.0)
+    bs_jwt (1.0.0)
       faraday (>= 0.8)
       json-jwt (~> 1.9.4)
 
@@ -26,7 +26,7 @@ GEM
     diff-lcs (1.3)
     factory_bot (4.10.0)
       activesupport (>= 3.0.0)
-    faraday (0.15.1)
+    faraday (0.15.2)
       multipart-post (>= 1.2, < 3)
     hashdiff (0.3.7)
     i18n (1.0.1)

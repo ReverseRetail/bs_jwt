@@ -34,12 +34,26 @@ module BsJwt
       verify_and_decode!(jwt)
     end
 
-    def verify_and_decode!(jwt_token)
-      raise InvalidToken, 'token is nil' if jwt_token.nil?
-      decoded = JSON::JWT.decode(jwt_token, jwks_key)
-      Authentication.from_jwt_payload(decoded, jwt_token)
+    def verify_and_decode_auth0_hash(auth0_hash)
+      raise ArgumentError, 'Auth0 Hash must be an instance of Hash' unless auth0_hash.is_a?(Hash)
+      jwt = auth0_hash.dig('credentials', 'id_token')
+      verify_and_decode(jwt)
+    end
+
+    def verify_and_decode!(jwt)
+      raise InvalidToken, 'token is nil' if jwt.nil?
+      decoded = JSON::JWT.decode(jwt, jwks_key)
+      Authentication.from_jwt_payload(decoded, jwt)
     rescue JSON::JWT::Exception
       raise InvalidToken
+    end
+
+    def verify_and_decode(jwt)
+      return if jwt.nil?
+      decoded = JSON::JWT.decode(jwt, jwks_key)
+      Authentication.from_jwt_payload(decoded, jwt)
+    rescue JSON::JWT::Exception
+      nil
     end
 
     def jwks_key
