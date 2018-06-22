@@ -24,12 +24,11 @@ module BsJwt
   class InvalidToken < BaseError; end
 
   mattr_accessor :auth0_domain
-  mattr_writer :jwks_key, :jwks_endpoint
 
   DEFAULT_ENDPOINT = '/.well-known/jwks.json'
 
   class << self
-    def process_auth0_hash(auth0_hash)
+    def verify_and_decode_auth0_hash!(auth0_hash)
       unless auth0_hash.is_a?(Hash)
         raise ArgumentError, 'Auth0 Hash must be an instance of Hash'
       end
@@ -38,6 +37,7 @@ module BsJwt
     end
 
     def verify_and_decode!(jwt_token)
+      raise InvalidToken, 'token is nil' if jwt_token.nil?
       decoded = JSON::JWT.decode(jwt_token, jwks_key)
       build_authentication(decoded, jwt_token)
     rescue JSON::JWT::Exception
@@ -45,7 +45,7 @@ module BsJwt
     end
 
     def jwks_key
-      @@jwks_key || update_jwks
+      @@jwks_key ||= update_jwks
     end
 
     private
@@ -53,7 +53,7 @@ module BsJwt
     # Fetches and overwrites the JWKS
     def update_jwks
       check_config
-      self.jwks_key = fetch_jwks
+      fetch_jwks
     end
 
     def build_authentication(payload, jwt_token)
@@ -63,7 +63,8 @@ module BsJwt
         token: jwt_token,
         expires_at: Time.at(payload['exp']),
         buddy_id: payload['https://buddy.buddyandselly.com/buddy_id'],
-        email: payload['name']
+        email: payload['name'],
+        user_id: payload['sub']
       )
     end
 
@@ -75,12 +76,8 @@ module BsJwt
       end
     end
 
-    def jwks_endpoint
-      @@jwks_endpoint || DEFAULT_ENDPOINT
-    end
-
-    def fetch_jwks(domain: auth0_domain, endpoint: jwks_endpoint)
-      url = [domain, endpoint].join
+    def fetch_jwks(domain: auth0_domain)
+      url = [domain, DEFAULT_ENDPOINT].join
       url = 'https://' + url unless url =~ %r{https?://}
       res = Faraday.get(url)
       # raise if response code is not HTTP success
