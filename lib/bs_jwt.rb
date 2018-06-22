@@ -37,7 +37,7 @@ module BsJwt
     def verify_and_decode!(jwt_token)
       raise InvalidToken, 'token is nil' if jwt_token.nil?
       decoded = JSON::JWT.decode(jwt_token, jwks_key)
-      build_authentication(decoded, jwt_token)
+      Authentication.from_jwt_payload(decoded, jwt_token)
     rescue JSON::JWT::Exception
       raise InvalidToken
     end
@@ -52,18 +52,6 @@ module BsJwt
     def update_jwks
       check_config
       fetch_jwks
-    end
-
-    def build_authentication(payload, jwt_token)
-      Authentication.new(
-        roles: payload['https://buddy.buddyandselly.com/roles'],
-        display_name: payload['nickname'],
-        token: jwt_token,
-        expires_at: Time.at(payload['exp']),
-        buddy_id: payload['https://buddy.buddyandselly.com/buddy_id'],
-        email: payload['name'],
-        user_id: payload['sub']
-      )
     end
 
     def check_config
