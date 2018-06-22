@@ -1,93 +1,84 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-
 RSpec.describe BsJwt do
   it 'has a version number' do
     expect(BsJwt::VERSION).not_to be nil
   end
 
-  describe '#process_auth0_hash/1' do
-    subject { described_class.process_auth0_hash(auth0_hash) }
-
+  describe '#verify_and_decode_auth0_hash!/1' do
     context 'called with an Auth0 Hash with valid structure' do
-      def valid_hash
-        { 'credentials' => { 'id_token' => 'Jan.Pawel.Drugi' } }
-      end
-
-      let(:auth0_hash) { valid_hash }
-
-      it 'calls #process_jwt/1 with the JWT token' do
-        expect(described_class).to receive(:process_jwt).with('Jan.Pawel.Drugi')
-        subject
+      it 'calls #verify_and_decode!/1 with the JWT token' do
+        expect(described_class).to receive(:verify_and_decode!).with('Jan.Pawel.Drugi')
+        described_class.verify_and_decode_auth0_hash!('credentials' => { 'id_token' => 'Jan.Pawel.Drugi' })
       end
     end
 
     context 'called with nil' do
-      let(:auth0_hash) { nil }
-      it { expect { subject }.to raise_exception(ArgumentError) }
+      it 'raises an ArgumentError' do
+        allow(described_class).to receive(:verify_and_decode!)
+        expect { described_class.verify_and_decode_auth0_hash!(nil) }.to raise_exception(ArgumentError)
+      end
     end
 
     context 'called with invalid Hash' do
-      def invalid_hash
-        { 'credentials' => nil }
+      it 'calls #verify_and_decode!/1 with nil' do
+        expect(described_class).to receive(:verify_and_decode!).with(nil)
+        described_class.verify_and_decode_auth0_hash!('credentials' => nil)
       end
-      let(:auth0_hash) { invalid_hash }
-
-      it { is_expected.to be false }
     end
   end
 
-  describe '#process_jwt/1' do
-    subject { described_class.process_jwt(jwt) }
-    def payload
-      {
-        nickname: 'Jan Paweł II',
-        'papiez/buddy_id' => 2137
-      }
-    end
-    let(:key) { 'foobar' }
-    let(:jwt) { JSON::JWT.new(payload).sign('foobar').to_s }
-
-    before do
-      described_class.jwks_key = key
+  describe '#verify_and_decode!' do
+    def set_auth0_domain_stub_keyset
+      described_class.auth0_domain = 'reverse-retail.eu.auth0.com'
+      stub_request(:get, 'https://reverse-retail.eu.auth0.com/.well-known/jwks.json')
+        .to_return(status: 200, body: load_fixture('jwks.json'))
     end
 
-    context 'called with a JWT' do
-      context 'when decoding key is valid' do
-        describe 'returns parsed payload with necessary attributes' do
-          it { expect(subject[:buddy_id]).to eq(2137) }
-          it { expect(subject[:display_name]).to eq('Jan Paweł II') }
-          it ':token field == JWT' do
-            expect(subject[:token]).to eq(jwt)
-          end
-        end
+    def load_fixture(name)
+      File.read("./spec/fixtures/#{name}")
+    end
+
+    context 'called with a valid JWT' do
+      it 'returns an Authentication instance with the right attributes' do
+        set_auth0_domain_stub_keyset
+        jwt = load_fixture('valid_jwt')
+
+        actual = described_class.verify_and_decode!(jwt)
+
+        expect(actual).to have_attributes(
+          display_name: 'Jannik Graw',
+          expires_at: Time.at(1529694629),
+          token: jwt,
+          buddy_id: 337,
+          email: 'j.graw@buddyandselly.com',
+          user_id: 'auth0|4e3a2fef71b571961c1b229',
+          roles: ['admin']
+        )
       end
+    end
 
-      context 'when decoding key is invalid' do
-        let(:key) { 'bazbaz' }
-        it { is_expected.to be false }
+    context 'called with a JWT with invalid signature' do
+      it 'raises an InvalidToken error' do
+        set_auth0_domain_stub_keyset
+        jwt = load_fixture('jwt_with_invalid_signature')
+
+        expect { described_class.verify_and_decode!(jwt) }.to raise_error(BsJwt::InvalidToken)
       end
+    end
 
-      describe 'configuration check' do
-        context 'when jwks_key is not set' do
-          let(:key) { nil }
+    context 'called with a JWT signed by the wrong authority' do
+      it 'raises an InvalidToken error' do
+        set_auth0_domain_stub_keyset
+        jwt = load_fixture('jwt_signed_by_wrong_authority')
 
-          context 'when BsJwt.auth0_domain is not set' do
-            it 'raises BsJwt::ConfigMissing' do
-              described_class.auth0_domain = nil
-              expect { subject }.to raise_exception(BsJwt::ConfigMissing)
-            end
-          end
+        expect { described_class.verify_and_decode!(jwt) }.to raise_error(BsJwt::InvalidToken)
+      end
+    end
 
-          context 'when auth0_domain is set' do
-            it 'calls #fetch_jwks/0' do
-              described_class.auth0_domain = 'www.example.com'
-              expect(described_class).to receive(:fetch_jwks)
-              subject
-            end
-          end
-        end
+    context 'called with nil' do
+      it 'raises an InvalidToken error' do
+        expect { described_class.verify_and_decode!(nil) }.to raise_error(BsJwt::InvalidToken)
       end
     end
   end

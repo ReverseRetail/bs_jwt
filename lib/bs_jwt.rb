@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 require 'bs_jwt/version'
+require 'bs_jwt/authentication'
 require 'bs_jwt/railtie' if defined?(Rails)
 require 'json/jwt'
+require 'faraday'
 
 ##
 # Module BsJwt
@@ -13,74 +15,43 @@ require 'json/jwt'
 #
 # The purpose of this library is to avoid code duplication among different
 # Rails apps, such as Buddy, B&S Inventory, or B&S Packing.
-
 module BsJwt
   class BaseError < RuntimeError; end
 
   class ConfigMissing < BaseError; end
   class VerificationError < BaseError; end
   class NetworkError < BaseError; end
+  class InvalidToken < BaseError; end
 
   mattr_accessor :auth0_domain
-  mattr_writer :jwks_key, :jwks_endpoint
 
   DEFAULT_ENDPOINT = '/.well-known/jwks.json'
 
   class << self
-    def process_auth0_hash(auth0_hash)
-      unless auth0_hash.is_a?(Hash)
-        raise ArgumentError, 'Auth0 Hash must be an instance of Hash'
-      end
+    def verify_and_decode_auth0_hash!(auth0_hash)
+      raise ArgumentError, 'Auth0 Hash must be an instance of Hash' unless auth0_hash.is_a?(Hash)
       jwt = auth0_hash.dig('credentials', 'id_token')
-      process_jwt(jwt)
+      verify_and_decode!(jwt)
     end
 
-    def process_jwt(jwt)
-      return false unless (decoded = verify_and_decode(jwt))
-      process_payload(decoded, jwt)
+    def verify_and_decode!(jwt_token)
+      raise InvalidToken, 'token is nil' if jwt_token.nil?
+      decoded = JSON::JWT.decode(jwt_token, jwks_key)
+      Authentication.from_jwt_payload(decoded, jwt_token)
+    rescue JSON::JWT::Exception
+      raise InvalidToken
     end
 
     def jwks_key
-      @@jwks_key || update_jwks
+      @jwks_key ||= update_jwks
     end
 
     private
 
-    # Fetches and overwrites the JWKS 
+    # Fetches and overwrites the JWKS
     def update_jwks
       check_config
-      self.jwks_key = fetch_jwks
-    end
-
-    def process_payload(payload, jwt)
-      namespaced = namespaced_attributes(payload, :buddy_id, :roles)
-      {
-        display_name: payload['nickname'],
-        expires_at: payload['exp'],
-        token: jwt
-      }.merge(namespaced)
-    end
-
-    # For given `payload`, finds the desired `attr_names`.
-    # Returns Hash of the format {:attr_name => attr_value}.
-    # This is necesarry as Auth0 (and the OAuth2 standards) require custom claims
-    # to be namespaced with a domain.
-    #
-    # Usage:
-    # > namespaced(payload, :buddy_id, :roles)
-    # => {buddy_id: 2137, roles: ["pope", "monter"]} 
-    def namespaced_attributes(payload, *attr_names)
-      attr_names.map do |attr|
-        val = payload.find { |k, _v| k.end_with?(attr.to_s) }&.last
-        [attr.to_sym, val]
-      end.to_h
-    end
-
-    def verify_and_decode(jwt)
-      return false unless jwt.is_a?(String)
-      JSON::JWT.decode(jwt, jwks_key)
-    rescue JSON::JWT::Exception
-      false
+      fetch_jwks
     end
 
     def check_config
@@ -91,12 +62,8 @@ module BsJwt
       end
     end
 
-    def jwks_endpoint
-      @@jwks_endpoint || DEFAULT_ENDPOINT
-    end
-
-    def fetch_jwks(domain: auth0_domain, endpoint: jwks_endpoint)
-      url = [domain, endpoint].join
+    def fetch_jwks(domain: auth0_domain)
+      url = [domain, DEFAULT_ENDPOINT].join
       url = 'https://' + url unless url =~ %r{https?://}
       res = Faraday.get(url)
       # raise if response code is not HTTP success
