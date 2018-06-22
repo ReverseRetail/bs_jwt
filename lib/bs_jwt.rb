@@ -4,6 +4,7 @@ require 'bs_jwt/version'
 require 'bs_jwt/authentication'
 require 'bs_jwt/railtie' if defined?(Rails)
 require 'json/jwt'
+require 'faraday'
 
 ##
 # Module BsJwt
