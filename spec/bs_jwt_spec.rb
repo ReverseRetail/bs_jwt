@@ -51,7 +51,6 @@ RSpec.describe BsJwt do
     end
   end
 
-
   def set_auth0_domain_stub_keyset
     described_class.auth0_domain = 'reverse-retail.eu.auth0.com'
     stub_request(:get, 'https://reverse-retail.eu.auth0.com/.well-known/jwks.json')
