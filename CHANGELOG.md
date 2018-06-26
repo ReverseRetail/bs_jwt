@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.0.2] - 2018-06-26
 ### Changed
 - Set email and display_name in the authentication factory for better testing support.
 
