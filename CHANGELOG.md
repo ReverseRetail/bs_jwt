@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+- Set email and display_name in the authentication factory for better testing support.
+
 ## [1.0.1] - 2018-06-22
 ### Added
 - `BsJwt.verify_and_decode/1` and `BsJwt.verify_and_decode_auth0_hash`, which basically do
