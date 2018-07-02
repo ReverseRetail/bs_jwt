@@ -47,3 +47,13 @@ Decode a JWT token directly from the omniauth hash:
 ```ruby
   BsJwt.verify_and_decode_auth0_hash!(request.env['omniauth.auth'])
 ```
+
+## Testing support
+
+Some `factory_bot` factories are included in this gem. To use them add
+
+```ruby
+require 'bs_jwt/factories'
+```
+
+before requiring `factory_bot` to your spec_helper.
