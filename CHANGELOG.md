@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.3] - 2018-07-02
+### Changed
+- Rename factory authentication to bs_jwt_authentication.
+
 ## [1.0.2] - 2018-06-26
 ### Changed
 - Set email and display_name in the authentication factory for better testing support.

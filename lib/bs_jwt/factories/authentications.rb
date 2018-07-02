@@ -2,7 +2,7 @@
 
 module BsJwt
   FactoryBot.define do
-    factory :authentication, class: Authentication do
+    factory :bs_jwt_authentication, class: Authentication do
       expires_at { 1.hour.from_now }
       sequence(:buddy_id)
       user_id "auth0|#{SecureRandom.hex(8)}"
