@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
+## Unreleased
+### Added
+- Authentication#to_h returns the instance attributes as hash.
+
+### Changed
+- Authentication.new now accepts an attribute hash.
 
 ## [1.0.3] - 2018-07-02
 ### Changed
