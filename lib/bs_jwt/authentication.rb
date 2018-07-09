@@ -16,16 +16,15 @@ module BsJwt
       )
     end
 
-    def initialize( # rubocop:disable Metrics/ParameterLists
-      roles: nil, display_name: nil, token: nil, expires_at: nil, buddy_id: nil, email: nil, user_id: nil
-    )
-      @roles = roles || []
-      @display_name = display_name
-      @token = token
-      @expires_at = expires_at
-      @buddy_id = buddy_id
-      @email = email
-      @user_id = user_id
+    def initialize(attributes = {})
+      attributes = attributes.with_indifferent_access
+      @roles = attributes[:roles] || []
+      @display_name = attributes[:display_name]
+      @token = attributes[:token]
+      @expires_at = attributes[:expires_at]
+      @buddy_id = attributes[:buddy_id]
+      @email = attributes[:email]
+      @user_id = attributes[:user_id]
     end
 
     def has_role?(role) # rubocop:disable Naming/PredicateName
@@ -34,6 +33,10 @@ module BsJwt
 
     def expired?
       Time.now >= expires_at
+    end
+
+    def to_h
+      instance_values
     end
   end
 end
