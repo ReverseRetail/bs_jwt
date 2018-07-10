@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bs_jwt (1.1.0)
+    bs_jwt (1.2.0)
       activesupport (>= 4.0)
       faraday (>= 0.8)
       json-jwt (~> 1.9.4)
