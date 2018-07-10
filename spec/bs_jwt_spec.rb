@@ -72,6 +72,7 @@ RSpec.describe BsJwt do
         expect(actual).to have_attributes(
           display_name: 'Jannik Graw',
           expires_at: Time.at(1529694629),
+          issued_at: Time.at(1529658629),
           token: jwt,
           buddy_id: 337,
           email: 'j.graw@buddyandselly.com',
