@@ -2,7 +2,7 @@
 
 module BsJwt
   class Authentication
-    attr_accessor :roles, :display_name, :token, :expires_at, :buddy_id, :email, :user_id
+    attr_accessor :roles, :display_name, :token, :expires_at, :buddy_id, :email, :user_id, :issued_at
 
     def self.from_jwt_payload(payload, jwt_token)
       new(
@@ -12,7 +12,8 @@ module BsJwt
         expires_at: Time.at(payload['exp']),
         buddy_id: payload['https://buddy.buddyandselly.com/buddy_id'],
         email: payload['name'],
-        user_id: payload['sub']
+        user_id: payload['sub'],
+        issued_at: Time.at(payload['iat'])
       )
     end
 
@@ -25,6 +26,7 @@ module BsJwt
       @buddy_id = attributes[:buddy_id]
       @email = attributes[:email]
       @user_id = attributes[:user_id]
+      @issued_at = attributes[:issued_at]
     end
 
     def has_role?(role) # rubocop:disable Naming/PredicateName
