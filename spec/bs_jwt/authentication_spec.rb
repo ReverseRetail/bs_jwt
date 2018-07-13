@@ -52,7 +52,6 @@ module BsJwt
           'display_name' => authentication.display_name,
           'token' => authentication.token,
           'expires_at' => authentication.expires_at,
-          'buddy_id' => authentication.buddy_id,
           'email' => authentication.email,
           'user_id' => authentication.user_id,
           'issued_at' => authentication.issued_at

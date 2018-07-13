@@ -2,7 +2,7 @@
 
 module BsJwt
   class Authentication
-    attr_accessor :roles, :display_name, :token, :expires_at, :buddy_id, :email, :user_id, :issued_at
+    attr_accessor :roles, :display_name, :token, :expires_at, :email, :user_id, :issued_at
 
     def self.from_jwt_payload(payload, jwt_token)
       new(
@@ -10,7 +10,6 @@ module BsJwt
         display_name: payload['nickname'],
         token: jwt_token,
         expires_at: Time.at(payload['exp']),
-        buddy_id: payload['https://buddy.buddyandselly.com/buddy_id'],
         email: payload['name'],
         user_id: payload['sub'],
         issued_at: Time.at(payload['iat'])
@@ -23,7 +22,6 @@ module BsJwt
       @display_name = attributes[:display_name]
       @token = attributes[:token]
       @expires_at = attributes[:expires_at]
-      @buddy_id = attributes[:buddy_id]
       @email = attributes[:email]
       @user_id = attributes[:user_id]
       @issued_at = attributes[:issued_at]
