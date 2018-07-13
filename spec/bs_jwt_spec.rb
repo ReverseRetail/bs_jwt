@@ -74,7 +74,6 @@ RSpec.describe BsJwt do
           expires_at: Time.at(1529694629),
           issued_at: Time.at(1529658629),
           token: jwt,
-          buddy_id: 337,
           email: 'j.graw@buddyandselly.com',
           user_id: 'auth0|4e3a2fef71b571961c1b229',
           roles: ['admin']
@@ -111,7 +110,6 @@ RSpec.describe BsJwt do
           display_name: 'Jannik Graw',
           expires_at: Time.at(1529694629),
           token: jwt,
-          buddy_id: 337,
           email: 'j.graw@buddyandselly.com',
           user_id: 'auth0|4e3a2fef71b571961c1b229',
           roles: ['admin']
