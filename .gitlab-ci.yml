@@ -3,12 +3,29 @@ image: "ruby:2.5"
 before_script:
   - ruby -v
   - gem install bundler  --no-ri --no-rdoc    # Bundler is not installed with the image
-  - bundle install -j $(nproc) --path vendor  # Install dependencies into ./vendor/ruby
+
+build:
+  stage: build
+  script:
+    - gem build bs_jwt.gemspec
 
 rubocop:
+  stage: test
   script:
+  - bundle install -j $(nproc) --path vendor  # Install dependencies into ./vendor/ruby
   - bundle exec rubocop
 
 rspec:
+  stage: test
   script:
+  - bundle install -j $(nproc) --path vendor  # Install dependencies into ./vendor/ruby
   - bundle exec rspec spec
+
+deploy to production:
+  stage: deploy
+  only:
+    - master
+  when: manual
+  script:
+    - echo "---\n:rubygems_api_key: $RUBY_GEMS_API_TOKEN" > ~/.gem/credentials && chmod 0600 ~/.gem/credentials
+    - gem push $(find . -name 'bs_jwt-*.gem')
