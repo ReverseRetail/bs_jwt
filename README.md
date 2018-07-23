@@ -57,3 +57,13 @@ require 'bs_jwt/factories'
 ```
 
 before requiring `factory_bot` to your spec_helper.
+
+## Publish new gem version
+
+1) Set the new version in the [version file](lib/bs_jwt/version.rb).
+
+2) Update the [changelog](CHANGELOG.md)
+
+3) Make a bump version commit and push it
+
+4) Visit https://gitlab.com/ReverseRetail/bs_jwt/pipelines. Wait for the tests to pass and trigger the publish_gem job.
