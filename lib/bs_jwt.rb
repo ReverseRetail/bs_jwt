@@ -31,18 +31,21 @@ module BsJwt
   class << self
     def verify_and_decode_auth0_hash!(auth0_hash)
       raise ArgumentError, 'Auth0 Hash must be an instance of Hash' unless auth0_hash.is_a?(Hash)
+
       jwt = auth0_hash.dig('credentials', 'id_token')
       verify_and_decode!(jwt)
     end
 
     def verify_and_decode_auth0_hash(auth0_hash)
       raise ArgumentError, 'Auth0 Hash must be an instance of Hash' unless auth0_hash.is_a?(Hash)
+
       jwt = auth0_hash.dig('credentials', 'id_token')
       verify_and_decode(jwt)
     end
 
     def verify_and_decode!(jwt)
       raise InvalidToken, 'token is nil' if jwt.nil?
+
       decoded = JSON::JWT.decode(jwt, jwks_key)
       Authentication.from_jwt_payload(decoded, jwt)
     rescue JSON::JWT::Exception
@@ -51,6 +54,7 @@ module BsJwt
 
     def verify_and_decode(jwt)
       return if jwt.nil?
+
       decoded = JSON::JWT.decode(jwt, jwks_key)
       Authentication.from_jwt_payload(decoded, jwt)
     rescue JSON::JWT::Exception
@@ -73,6 +77,7 @@ module BsJwt
       %i[auth0_domain].each do |key|
         val = send(key)
         next if val && (val.respond_to?(:empty?) && !val.empty?) # present
+
         raise ConfigMissing, "#{key} is not set"
       end
     end
@@ -84,6 +89,7 @@ module BsJwt
       # raise if response code is not HTTP success
       # Faraday's exception should fall through
       raise(NetworkError, 'Fetching JWKS key failed') unless res.success?
+
       JSON::JWK::Set.new(JSON.parse(res.body))
     end
   end
