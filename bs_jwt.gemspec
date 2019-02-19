@@ -33,9 +33,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler', '~> 1.16'
   spec.add_development_dependency 'factory_bot', '>= 4.0', '<= 6.0'
   spec.add_development_dependency 'pry-byebug', '~> 3.0'
-  spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'rake', '~> 12.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'rubocop', '~> 0.59.0'
+  spec.add_development_dependency 'rubocop', '~> 0.65.0'
   spec.add_development_dependency 'webmock', '~> 3.0'
 
   spec.add_dependency 'activesupport', '>= 4.0', '<= 6.0'
