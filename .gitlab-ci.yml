@@ -2,7 +2,7 @@ image: "ruby:2.5"
 
 before_script:
   - ruby -v
-  - gem install bundler  --no-ri --no-rdoc    # Bundler is not installed with the image
+  - gem install bundler  --no-document    # Bundler is not installed with the image
 
 rubocop:
   stage: test
