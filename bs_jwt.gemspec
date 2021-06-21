@@ -38,7 +38,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop', '~> 0.65.0'
   spec.add_development_dependency 'webmock', '~> 3.0'
 
-  spec.add_dependency 'activesupport', '>= 4.0', '<= 6.0'
+  spec.add_dependency 'activesupport', '>= 4.0'
   spec.add_dependency 'faraday', '>= 0.8', '<= 2.0'
   spec.add_dependency 'json-jwt', '~> 1.9'
 end
