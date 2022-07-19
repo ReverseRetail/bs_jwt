@@ -1,0 +1,24 @@
+name: Ruby Style Guide
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.5.1
+    - name: Run the default task
+      run: |
+        gem install bundler -v 1.16
+        bundle install
+        bundle exec rake
