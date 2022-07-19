@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['dmuhafc(at)gmail.com', 'b.vogel(at)buddyandselly.com']
   spec.summary       = 'Simple library for verifying Auth0 JWTs.'
   spec.homepage      = 'https://www.reverse-retail.com'
-  spec.metadata      = { 'source_code_uri' => 'https://gitlab.com/ReverseRetail/bs_jwt' }
+  spec.metadata      = { 'source_code_uri' => 'https://github.com/ReverseRetail/bs_jwt' }
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -40,5 +40,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activesupport', '>= 4.0'
   spec.add_dependency 'faraday', '>= 0.8', '<= 2.0'
-  spec.add_dependency 'json-jwt', '~> 1.9'
+  spec.add_dependency 'json-jwt', '>= 1.9'
 end
